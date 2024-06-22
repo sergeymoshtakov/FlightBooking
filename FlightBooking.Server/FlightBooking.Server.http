@@ -1,0 +1,6 @@
+@FlightBooking.Server_HostAddress = http://localhost:5094
+
+GET {{FlightBooking.Server_HostAddress}}/user/
+Accept: application/json
+
+###
