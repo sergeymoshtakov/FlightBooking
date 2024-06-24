@@ -1,4 +1,5 @@
-﻿using FlightBooking.Server.Models;
+﻿using FlightBooking.Server.Data;
+using FlightBooking.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FlightBooking.Server.Controllers
@@ -7,51 +8,38 @@ namespace FlightBooking.Server.Controllers
     [Route("[controller]")]
     public class UsersController : ControllerBase
     {
-        static readonly List<User> data;
-        static UsersController()
+        private readonly ApplicationDbContext _context;
+
+        public UsersController(ApplicationDbContext context)
         {
-            data = new List<User>
-            {
-                new User {
-                    UserId = Guid.NewGuid(), 
-                    Name = "John Doe",
-                    Email = "hahaha@example.com",
-                    Password = "password1",
-                    Phone = "1234567890",
-                },
-                new User {
-                    UserId = Guid.NewGuid(), 
-                    Name = "John Smith",
-                    Email = "lalala@example.com",
-                    Password = "password2",
-                    Phone = "1234567890",
-                },
-            };
+            _context = context;
         }
 
-        [HttpGet(Name = "GetUsers")]
+        [HttpGet]
         public IEnumerable<User> Get()
         {
-            return data;
+            return _context.Users.ToList();
         }
 
         [HttpPost]
         public IActionResult Post(User user)
         {
             user.UserId = Guid.NewGuid();
-            data.Add(user);
+            _context.Users.Add(user);
+            _context.SaveChanges();
             return Ok(user);
         }
 
         [HttpDelete("{id}")]
         public IActionResult Delete(string id)
         {
-            User user = data.FirstOrDefault(x => x.UserId == new Guid(id));
+            User user = _context.Users.FirstOrDefault(x => x.UserId == new Guid(id));
             if (user == null)
             {
                 return NotFound();
             }
-            data.Remove(user);
+            _context.Users.Remove(user);
+            _context.SaveChanges();
             return Ok(user);
         }
     }

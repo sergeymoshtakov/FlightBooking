@@ -14,6 +14,6 @@ namespace FlightBooking.Server.Models
         public string Password { get; set; }
         public string Phone { get; set; }
 
-        public ICollection<Ticket> Tickets { get; set; }
+        public ICollection<Ticket>? Tickets { get; set; }
     }
 }
