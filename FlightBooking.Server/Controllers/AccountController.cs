@@ -2,10 +2,13 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using FlightBooking.Server.Data;
+using FlightBooking.Server.Services;
 
 namespace FlightBooking.Server.Controllers
 {
@@ -14,10 +17,14 @@ namespace FlightBooking.Server.Controllers
     public class AccountController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IUserSessionService _userSessionService;
+        private readonly ILogger<AccountController> _logger; 
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(ApplicationDbContext context, IUserSessionService userSessionService, ILogger<AccountController> logger)
         {
             _context = context;
+            _userSessionService = userSessionService;
+            _logger = logger;
         }
 
         [HttpPost("register")]
@@ -50,14 +57,16 @@ namespace FlightBooking.Server.Controllers
                 return Unauthorized("Invalid email or password.");
             }
 
-            var claims = new List<Claim>
+            var session = new UserSession { UserId = user.UserId, IsAuthenticated = true };
+            _userSessionService.SetUserSession(session);
+
+            // Устанавливаем куку с UserId
+            Response.Cookies.Append("userId", user.UserId.ToString(), new CookieOptions
             {
-                new Claim(ClaimTypes.Name, user.Email)
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                HttpOnly = true,
+                SameSite = SameSiteMode.None, // Настройте по необходимости
+                Secure = true // Настройте по необходимости
+            });
 
             return Ok();
         }
@@ -65,14 +74,40 @@ namespace FlightBooking.Server.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            if (HttpContext.Request.Cookies.ContainsKey("userId"))
+            {
+                var userId = Guid.Parse(HttpContext.Request.Cookies["userId"]);
+                _userSessionService.ClearUserSession(userId);
+
+                // Удаляем куку
+                Response.Cookies.Delete("userId");
+            }
+
             return Ok();
         }
 
         [HttpGet("isAuthenticated")]
         public IActionResult IsAuthenticated()
         {
-            return Ok(User.Identity.IsAuthenticated);
+            try
+            {
+                var userId = Guid.Parse(HttpContext.Request.Cookies["userId"]);
+                var session = _userSessionService.GetUserSession(userId);
+
+                if (session != null && session.IsAuthenticated)
+                {
+                    return Ok(true);
+                }
+                else
+                {
+                    return Ok(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred in IsAuthenticated: {ex.Message}");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

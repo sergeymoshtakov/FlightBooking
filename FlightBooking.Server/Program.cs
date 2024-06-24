@@ -1,4 +1,5 @@
 using FlightBooking.Server.Data;
+using FlightBooking.Server.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,9 +13,11 @@ builder.Services.AddControllers();
 
 builder.Services.AddAuthentication("Cookies")
     .AddCookie(options =>
-            {
-                options.LoginPath = "/account/login";
-            });
+    {
+        options.LoginPath = "/account/login";
+    });
+
+builder.Services.AddScoped<IUserSessionService, UserSessionService>(); // Регистрация IUserSessionService
 
 builder.Services.AddMvc();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

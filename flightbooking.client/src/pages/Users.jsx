@@ -5,9 +5,16 @@ function Users() {
 
     useEffect(() => {
         async function fetchUsers() {
-            const response = await fetch('/users');
-            const data = await response.json();
-            setUsers(data);
+            try {
+                const response = await fetch('/users');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch users');
+                }
+                const data = await response.json();
+                setUsers(data);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
         }
         fetchUsers();
     }, []);
@@ -38,4 +45,3 @@ function Users() {
 }
 
 export default Users;
-

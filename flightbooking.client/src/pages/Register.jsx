@@ -58,6 +58,9 @@ function Register() {
             />
             <button onClick={handleRegister}>Register</button>
             {error && <p style={{ color: 'red' }}>{error}</p>}
+            <p>
+                ALready have an account? <a href="/login">Log in</a>
+            </p>
         </div>
     );
 }

@@ -20,7 +20,7 @@ function Login() {
         });
 
         if (response.ok) {
-            navigate('/');
+            navigate('/'); 
         } else {
             const errorMessage = await response.text();
             setError(`Failed to login: ${errorMessage}`);
