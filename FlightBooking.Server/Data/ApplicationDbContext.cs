@@ -16,6 +16,7 @@ namespace FlightBooking.Server.Data
         public DbSet<Flight> Flights { get; set; }
         public DbSet<Seat> Seats { get; set; }
         public DbSet<Ticket> Tickets { get; set; }
+        public DbSet<AirportCoordinates> AirportCoordinates { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

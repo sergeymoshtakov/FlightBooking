@@ -13,5 +13,7 @@ namespace FlightBooking.Server.Models
         public string Country { get; set; }
         [Required]
         public string Code { get; set; }
+
+        public AirportCoordinates Coordinates { get; set; }
     }
 }
